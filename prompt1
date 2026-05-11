@@ -1,186 +1,388 @@
-PROJECT SUMMARY — ETL Production Support Copilot
+You are a senior software engineer and platform engineer.
 
-Goal:
-Reduce ETL failure investigation time (currently ~15–45 mins) by building a deterministic investigation platform with AI-assisted interaction.
+Build a production-quality MCP (Model Context Protocol) server in TypeScript/Node.js that acts as an enterprise log investigation assistant for batch jobs.
 
-Problem Context:
-- ~30 ETL services/jobs
-- 0–2 failures/day
-- Many failures repetitive (60–70%)
-- Engineers manually:
-  - identify failed job
-  - search logs across systems
-  - interpret errors
-  - follow SOPs/runbooks
-- Current process causes cognitive overload and repetitive effort
+The MCP server will run on Windows under the currently logged-in user account and must access a NAS/network-mounted filesystem that is already accessible through Windows Explorer using the user's entitlements.
 
-Core Design Philosophy:
-- Rule-first, NOT LLM-first
-- Human-in-the-loop only
-- AI used only for explanation/summarization
-- Deterministic backend system
-- MCP/Copilot is an interface layer, not the core system
+Example mounted paths:
+- Z:\batch_logs\
+- \\nas-server\logs\
 
-CURRENT ARCHITECTURE
+The server must NEVER bypass Windows permissions or perform authentication itself. It should simply access files using the current user context.
 
-Interfaces:
-- VSCode Copilot via MCP
-- CLI tool
-- (future) dashboard
+==================================================
+PRIMARY GOAL
+==================================================
 
-Flow:
-User → MCP/CLI → Investigation Engine → Structured Incident Report
+The MCP server should allow an LLM client (Claude Desktop, Cursor, ChatGPT Desktop, etc.) to investigate failed jobs by:
+- locating logs
+- reading tails
+- extracting suspicious regions
+- searching for failure signals
+- summarizing useful context
 
-Core Components:
-1. Context Builder
-   - identifies job/run metadata
+The MCP server is NOT responsible for final root-cause reasoning.
+The LLM will do reasoning.
 
-2. Signal Extraction Layer
-   - converts raw logs into normalized signals
-   Examples:
-   - PRIMARY_KEY_VIOLATION
-   - CONNECTION_TIMEOUT
-   - SCHEMA_MISMATCH
+The MCP server should focus on:
+- filesystem access
+- log retrieval
+- anomaly extraction
+- context compression
+- structured responses
 
-3. Rule Engine
-   - maps signals → classifications/root causes
-   - avoids job-specific rules where possible
+==================================================
+TECH STACK
+==================================================
 
-4. SOP Resolver
-   - retrieves remediation/investigation steps
+Use:
+- Node.js
+- TypeScript
+- @modelcontextprotocol/sdk
+- fast-glob
+- fs/promises
+- path
+- zod
 
-5. Similar Incident Lookup
-   - searches historical incidents for related failures
+Project should be production-quality and modular.
 
-6. Incident Report Generator
-   Returns:
-   - job
-   - cause
-   - confidence
-   - evidence
-   - SOP steps
-   - similar incidents
+==================================================
+IMPORTANT DESIGN PRINCIPLES
+==================================================
 
-LLM STRATEGY
-- No backend LLM/API access
-- Uses GitHub Copilot only
-- Copilot role:
-  - explanation
-  - summarization
-  - presenting findings
-- NOT used for:
-  - classification
-  - orchestration
-  - root cause decisions
+1. NEVER read entire large logs into memory.
+2. Use tailing and streaming wherever possible.
+3. Prevent path traversal attacks.
+4. Only allow access under configured base directories.
+5. Return structured JSON-friendly outputs.
+6. Handle enterprise-scale logs.
+7. Make tools composable.
+8. Support recursive log discovery.
+9. Avoid shell execution.
+10. Add detailed logging and error handling.
 
-MCP INTEGRATION
-- MCP acts as a thin adapter layer
-- Tools exposed:
-  - investigate_job_failure(job_name)
-  - list_failed_jobs()
-- MCP calls investigation engine directly
-- Business logic does NOT live inside MCP
+==================================================
+CONFIGURATION
+==================================================
 
-CLI PURPOSE
-- Validate deterministic behavior
-- Debug without consuming Copilot tokens
-- Ensure system works independently of AI
-- Exposes structured outputs directly
+Create a config module with:
+- BASE_LOG_PATHS
+- SUCCESS_MARKERS
+- SUSPICIOUS_PATTERNS
+- MAX_TAIL_LINES
+- MAX_FILE_SIZE_MB
+- CONTEXT_WINDOW_LINES
 
-INCIDENT STORAGE
+Example:
+- "Completed successfully"
+- "Exit code: 0"
+- "Workflow finished"
+
+Suspicious patterns should include:
+- ERROR
+- FATAL
+- Exception
+- Traceback
+- ORA-
+- Caused by:
+- timeout
+- terminated
+- aborted
+- OutOfMemory
+- connection refused
+- failed
+
+==================================================
+TOOLS TO IMPLEMENT
+==================================================
+
+Implement the following MCP tools.
+
+--------------------------------------------------
+1. find_logs
+--------------------------------------------------
+
 Purpose:
-Create organizational memory of resolved issues.
+Locate logs recursively for a given job name.
 
-Initial storage:
-- JSON-based incident store
+Input:
+{
+  "jobName": "abc"
+}
 
-Incident schema:
-- incident_id
-- job_name
-- timestamp
-- error_type
-- error_message
-- classification
-- cause
-- resolution
-- steps_taken
+Behavior:
+- recursively search under BASE_LOG_PATHS
+- find:
+  - abc.log
+  - abc.err
+  - abc.out
+  - abc.stdout
+  - abc.stderr
+- support nested date directories
+- use fast-glob
 
-Used for:
-- similar incident lookup
-- unknown issue assistance
-- future analytics
+Return:
+{
+  "jobName": "abc",
+  "files": [
+    {
+      "path": "...",
+      "type": "log",
+      "sizeBytes": 12345,
+      "modifiedTime": "..."
+    }
+  ]
+}
 
-SIMILAR INCIDENT LOOKUP
-Initial approach:
-- deterministic keyword + signal matching
-- no vector DB initially
+--------------------------------------------------
+2. tail_log
+--------------------------------------------------
 
-Similarity scoring:
-- error_type match
-- system match
-- keyword overlap
+Purpose:
+Read only the last N lines of a log.
 
-VECTOR DB / CHROMADB STRATEGY
-Not needed initially.
+Input:
+{
+  "filePath": "...",
+  "lines": 200
+}
 
-Will only be introduced if:
-- incident volume grows significantly
-- keyword matching becomes insufficient
-- semantic retrieval is required
+Behavior:
+- safely validate path
+- efficiently tail file
+- avoid full file load
+- support very large logs
 
-AGENT STRATEGY
-No AI agents initially.
+Return:
+{
+  "filePath": "...",
+  "tail": [
+    "line1",
+    "line2"
+  ]
+}
 
-Reason:
-- deterministic workflow sufficient
-- avoids orchestration complexity
-- improves explainability/debugging
+--------------------------------------------------
+3. search_log
+--------------------------------------------------
 
-ASYNC STRATEGY
-Initial POC:
-- synchronous
+Purpose:
+Search for patterns inside a log.
 
-Future:
-- async log retrieval for Splunk/NAS calls if needed
+Input:
+{
+  "filePath": "...",
+  "pattern": "ORA-"
+}
 
-LOG SOURCES
-Planned:
-- Splunk API
-- SSIS logs
-- Ab Initio logs
-- ETL metadata tables
+Behavior:
+- support regex
+- return matching lines
+- include line numbers
+- limit output size
 
-Preferred approach:
-metadata-first whenever possible.
+Return:
+{
+  "matches": [
+    {
+      "lineNumber": 551,
+      "text": "ORA-12514 ..."
+    }
+  ]
+}
 
-DEPLOYMENT
-Current:
-- local MCP server inside VSCode
+--------------------------------------------------
+4. extract_failure_context
+--------------------------------------------------
 
-Future:
-- centralized investigation service/API
+Purpose:
+Extract suspicious sections around anomalies.
 
-AUTHENTICATION
-Current POC:
-- trusted local environment
+Input:
+{
+  "filePath": "..."
+}
 
-Future:
-- service account + RBAC for enterprise systems
+Behavior:
+- detect suspicious lines using configured patterns
+- extract context windows around matches
+- detect stack traces
+- detect abrupt endings
+- detect missing success markers
+- identify suspicious termination
 
-NEXT STEPS
-1. Build production-grade CLI
-2. Improve signal extraction
-3. Add 10–15 high-frequency rules
-4. Create incident storage layer
-5. Implement similar incident lookup
-6. Integrate real log sources
-7. Expand SOP coverage
+This tool is CRITICAL.
 
-KEY POSITIONING
-This is NOT:
-- an autonomous AI agent
-- an AI chatbot
+Detection strategies:
+- keyword detection
+- regex detection
+- stack trace detection
+- missing success markers
+- abrupt termination
+- semantic suspicious lines
 
-This IS:
-- a deterministic ETL investigation platform
-- with AI-assisted interaction and explanation
+Examples of stack trace indicators:
+- Exception
+- Traceback
+- Caused by:
+- at com.
+- panic:
+- Segmentation fault
+
+Return:
+{
+  "jobCompleted": false,
+  "successMarkerFound": false,
+  "suspiciousSections": [
+    {
+      "reason": "ORA error",
+      "lines": [...]
+    }
+  ],
+  "tailSummary": "...",
+  "detectedSignals": [...]
+}
+
+--------------------------------------------------
+5. summarize_failure
+--------------------------------------------------
+
+Purpose:
+Provide lightweight heuristic summarization.
+
+IMPORTANT:
+This is NOT the final AI reasoning layer.
+It should only provide heuristics.
+
+Behavior:
+- call internal utilities
+- aggregate suspicious signals
+- classify common categories
+
+Example categories:
+- Oracle DB issue
+- Network timeout
+- Java heap issue
+- Scheduler issue
+- Permission issue
+
+Return:
+{
+  "summary": "...",
+  "probableCategory": "...",
+  "signals": [...]
+}
+
+==================================================
+IMPORTANT DETECTION LOGIC
+==================================================
+
+The implementation must NOT rely solely on fixed ERROR keywords.
+
+Implement layered detection:
+1. Known keyword matching
+2. Regex pattern detection
+3. Stack trace detection
+4. Missing success markers
+5. Abrupt log endings
+6. Suspicious semantic indicators
+7. Failure signal extraction
+
+The MCP server should surface:
+- suspicious regions
+- abnormal endings
+- incomplete workflows
+- stack traces
+- unusual lines
+
+The LLM will perform final reasoning.
+
+==================================================
+SECURITY REQUIREMENTS
+==================================================
+
+CRITICAL SECURITY REQUIREMENTS:
+
+1. Prevent path traversal:
+- reject ../../
+- reject arbitrary absolute paths outside base dirs
+
+2. Validate job names:
+- only allow:
+  - letters
+  - numbers
+  - underscore
+  - dash
+
+3. Restrict filesystem access to configured roots only.
+
+4. Never execute shell commands using user input.
+
+5. Add file size limits.
+
+6. Gracefully handle permission errors.
+
+==================================================
+PROJECT STRUCTURE
+==================================================
+
+Use clean architecture.
+
+Suggested structure:
+
+src/
+  server.ts
+  config/
+  tools/
+  services/
+  utils/
+  validators/
+  types/
+
+==================================================
+IMPLEMENTATION DETAILS
+==================================================
+
+Implement:
+- TypeScript types
+- zod validation
+- reusable services
+- robust async handling
+- structured logging
+- comments
+- clean error messages
+
+==================================================
+BONUS FEATURES
+==================================================
+
+If possible add:
+- fuzzy job matching
+- date filtering
+- compressed log support
+- multi-log correlation
+- caching
+- log source prioritization
+
+==================================================
+DELIVERABLES
+==================================================
+
+Generate:
+1. Full project structure
+2. package.json
+3. tsconfig.json
+4. Complete TypeScript source files
+5. MCP tool registration
+6. Utility modules
+7. README.md
+8. Example Claude Desktop MCP config
+9. Example usage prompts
+10. Setup instructions
+
+The generated solution should be runnable immediately after:
+npm install
+npm run build
+npm start
+
+Provide complete implementation code, not pseudocode.
