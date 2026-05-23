@@ -1,0 +1,267 @@
+1)Reduced end-to-end pipeline latency by 40% through SQL execution-plan optimization, size-based micro-batching, and parallel
+thread execution across Spring Boot ingestion services.
+
+Analyze this ETL codebase and determine whether the following optimization claims are accurate:
+
+1. SQL execution plan optimization
+- Were SQL queries optimized?
+- Any index improvements?
+- Query rewrites?
+- Explain Plan usage?
+
+2. Micro batching
+- Are records processed in batches?
+- Batch size configuration?
+- Evidence of batching improvements?
+
+3. Parallel execution
+- ExecutorService?
+- CompletableFuture?
+- parallelStream?
+- Spring @Async?
+- Thread pools?
+
+4. Pipeline latency reduction
+- Any logs showing before/after timings?
+- Any metrics proving performance improvement?
+
+Find actual implementation evidence and point to code files.
+
+
+
+
+
+2)
+Act as a Staff Backend Engineer and Senior Interviewer.
+
+Analyze this ENTIRE codebase and validate whether the following resume claims are technically accurate.
+
+For EACH claim:
+
+1. Find evidence in code/config/deployment files.
+2. Point to exact files/classes/functions.
+3. Explain HOW the implementation works.
+4. Explain what interview questions could come from it.
+5. Tell me if claim is:
+   - STRONG (fully defensible)
+   - PARTIAL (needs softer wording)
+   - REMOVE (overclaiming)
+
+Also explain concepts deeply so I can defend them in interviews.
+
+Claims to validate:
+
+------------------------------------------------
+
+1. ETL PIPELINES
+
+"Designed and owned ETL pipelines processing financial records across portfolio analytics workflows"
+
+Questions:
+
+- Where is ingestion happening?
+- Where is transformation happening?
+- Where is distribution happening?
+- Which components are ETL?
+- How many jobs/services exist?
+- Is ownership claim justified?
+
+------------------------------------------------
+
+2. PERFORMANCE
+
+"Reduced pipeline latency through SQL optimization, batching improvements, and parallel execution"
+
+Find:
+
+- SQL optimizations
+- batching logic
+- ExecutorService
+- CompletableFuture
+- parallelStream
+- Spring @Async
+- thread pools
+- parallel consumers
+
+Questions:
+
+- Did batching actually happen?
+- Is parallel execution true?
+- Is SQL execution optimization true?
+- Can latency reduction be measured?
+
+Provide evidence.
+
+------------------------------------------------
+
+3. KAFKA
+
+Claim:
+
+"Contributed to Kafka event-driven processing"
+
+Find:
+
+- Kafka consumers
+- producers
+- partition configuration
+- consumer groups
+- offset handling
+- retry handling
+- DLQ handling
+- lag monitoring
+
+Questions:
+
+- Did I tune Kafka?
+- Or only work with Kafka?
+
+Recommend exact resume wording.
+
+------------------------------------------------
+
+4. OPENSHIFT / DEVOPS
+
+Claims:
+
+"OpenShift deployment"
+"CI/CD"
+"Jenkins"
+
+Find:
+
+- deployment yaml
+- OpenShift manifests
+- Jenkinsfiles
+- Harness pipelines
+- Dockerfiles
+
+Explain deployment flow:
+
+Code
+→ Build
+→ Test
+→ Artifact
+→ Deploy
+
+Questions:
+
+- What exactly happens in deployment?
+- What role did I play?
+
+------------------------------------------------
+
+5. API CONTRACTS
+
+Claim:
+
+"Defined API contracts"
+
+Find:
+
+- REST controllers
+- Swagger/OpenAPI
+- DTOs
+- request validation
+
+Questions:
+
+- Did I actually define APIs?
+- Or consume existing APIs?
+
+Recommend wording.
+
+------------------------------------------------
+
+6. SCHEMA VERSIONING
+
+Find:
+
+- schema evolution
+- backward compatibility
+- versioned DTOs
+- migrations
+
+Question:
+
+Did schema versioning actually happen?
+
+------------------------------------------------
+
+7. RCA / PRODUCTION SUPPORT
+
+Claim:
+
+"Led production incident RCA"
+
+Find:
+
+- Splunk usage
+- logs
+- monitoring
+- debugging workflow
+
+Questions:
+
+- How are incidents debugged?
+- How is root cause found?
+
+Generate interview answers.
+
+------------------------------------------------
+
+8. DQ / DATA QUALITY
+
+Find:
+
+- DQ jobs
+- validation jobs
+- schema checks
+- reconciliation
+- monitoring
+
+Explain:
+
+What DQ means in THIS codebase.
+
+------------------------------------------------
+
+9. DATA MOVEMENT JOBS
+
+Find:
+
+- DM jobs
+- orchestration
+- movement logic
+
+Explain:
+
+What they do.
+
+------------------------------------------------
+
+10. DEPLOYMENT MIGRATION
+
+Claim:
+
+"EPL → EPLX migration"
+"Harness → OCP migration"
+
+Find evidence.
+
+Explain architecture before and after.
+
+------------------------------------------------
+
+OUTPUT FORMAT:
+
+Claim:
+Evidence:
+Files:
+Interview explanation:
+Interview questions:
+Resume wording recommendation:
+
+Also identify resume overclaims.
+
+Prioritize technical accuracy over making resume impressive.
