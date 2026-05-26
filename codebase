@@ -265,3 +265,19 @@ Resume wording recommendation:
 Also identify resume overclaims.
 
 Prioritize technical accuracy over making resume impressive.
+
+
+
+
+3)
+I want to understand how Kafka is configured and used in this codebase so I can accurately describe it on my resume. Please analyze the code and tell me:
+
+Consumer group configuration — what are the group.id, max.poll.records, fetch.min.bytes, fetch.max.wait.ms, session.timeout.ms values set to, if any?
+Partition setup — how many partitions are configured per topic? Is partition assignment manual or automatic?
+Consumer scaling — how many consumer instances are deployed? Does the instance count match partition count?
+Lag monitoring — is there any lag tracking, alerting, or dashboard integration (Splunk, JMX, Kafka metrics)?
+Throughput handling — are there any retry mechanisms, dead letter queues, or backpressure handling?
+Peak load handling — are there any comments, configs, or batch-size settings that suggest design decisions around high-volume periods?
+
+Based on what you find, help me write a single resume bullet point that accurately describes my Kafka work — using only what exists in the code, no assumptions.
+
