@@ -329,3 +329,15 @@ Peak load handling — are there any comments, configs, or batch-size settings t
 
 Based on what you find, help me write a single resume bullet point that accurately describes my Kafka work — using only what exists in the code, no assumptions.
 
+
+
+
+----------------------------------------------
+
+
+Search this codebase for ETL or data pipeline logic. Look for: volume indicators (batch sizes, record counts, loop bounds), data quality checks (schema validation, reconciliation, null checks, SLA assertions). What does the code actually process and validate? Give me exact class/method names, any numeric constants you find, and what checks are enforced. If you cannot confirm 1M+ records or 99.99% integrity from code alone, draft a resume bullet with the accurate numbers and checks you do find.
+Search this codebase for performance optimization patterns: micro-batching logic, thread pools, parallel execution, and any SQL query tuning (indexes, query hints, pagination). Find exact class/method names, thread pool configs, batch size values, and any before/after comments or benchmarks. If no 40% figure is measurable from code, draft a resume bullet using what you actually find — include the specific techniques and any config values.
+Look through this codebase and config files for cloud migration artifacts: any PCF (manifest.yml, cf push) references, OpenShift/OCP configs (Deployment YAMLs, routes, imagestreams), GitHub Actions workflows (.github/workflows/), and Harness pipeline references. List what you find exactly. If you can confirm a migration happened, summarize what changed. If not fully verifiable, draft a resume bullet that accurately describes the deployment setup you can actually see.
+Find any notification service in this codebase. Look for: REST endpoints handling notification/alert dispatch, template handling, any async patterns, and evidence this service replaced or consolidated older duplicated logic (dead code, deprecation comments, changelogs). List endpoint names, template types supported, and which teams or consumers are referenced. If the 35% or 100% figures can't be confirmed, draft a resume bullet using what the code actually shows.
+Search for Kafka configuration in this codebase: consumer group IDs, partition counts, fetch sizes, polling intervals, offset management, and any load or throughput handling logic. List all Kafka config values you find (application.yml, properties files, annotations). If there are comments or benchmarks referencing latency or traffic spikes, include them. If <100ms or 3x peak can't be confirmed from code, draft a resume bullet using the actual Kafka setup you find.
+Look for Liquibase and Jenkins integration in this codebase: changelog files, shell scripts invoking Liquibase, Jenkinsfile pipelines, and any environment-specific deployment logic (staging vs production). List the scripts, pipeline stages, and what was automated. If there are comments about manual steps that were replaced, include them. If the 80% figure isn't verifiable, draft a resume bullet that accurately reflects the automation you actually find.
